@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#e74c3c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="家庭点菜">
+    <title>🏠 家庭点菜</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <h1 class="logo" onclick="switchTab('menu')">🏠 家庭点菜</h1>
+            <div class="header-actions">
+                <button class="btn-icon" id="btnManage" onclick="switchTab('manage')" title="管理">⚙️</button>
+                <button class="btn-icon" id="btnHistory" onclick="switchTab('history')" title="订单历史">📋</button>
+                <button class="btn-icon cart-badge-wrapper" onclick="toggleCart()" title="购物车">
+                    🛒 <span class="cart-badge" id="cartBadge">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 菜单页 -->
+        <div id="menuTab" class="tab active">
+            <div class="member-bar">
+                <label class="member-label">👤 点菜人：</label>
+                <div class="member-select-wrap">
+                    <select id="memberSelect" class="member-select" onchange="onMemberChange()">
+                        <option value="">-- 选择家人 --</option>
+                    </select>
+                    <div class="member-avatar-preview" id="memberAvatarPreview">👤</div>
+                </div>
+            </div>
+            <nav class="category-nav" id="categoryNav"></nav>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 搜索菜名..." oninput="filterMenu()">
+            </div>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <!-- 历史页 -->
+        <div id="historyTab" class="tab">
+            <div class="page-header">
+                <h2>📋 订单历史</h2>
+                <div>
+                    <button class="btn-text" onclick="shareOrders()">📤 分享订单</button>
+                    <button class="btn-text" onclick="clearHistory()">🗑️ 清空</button>
+                </div>
+            </div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+        <!-- 管理页 -->
+        <div id="manageTab" class="tab">
+            <div class="page-header"><h2>⚙️ 后台管理</h2></div>
+            <nav class="manage-subnav" id="manageSubnav">
+                <button class="subnav-btn active" data-mtab="dishes">🍽️ 菜品管理</button>
+                <button class="subnav-btn" data-mtab="categories">📂 分类管理</button>
+                <button class="subnav-btn" data-mtab="members">👨‍👩‍👧‍👦 家人管理</button>
+                <button class="subnav-btn" data-mtab="data">💾 数据同步</button>
+            </nav>
+            <div id="mPanelDishes" class="manage-panel active">
+                <div class="panel-toolbar">
+                    <span class="panel-count" id="dishCount">共 0 道菜</span>
+                    <button class="btn-primary btn-sm" onclick="openDishForm()">＋ 添加菜品</button>
+                </div>
+                <div class="manage-dish-list" id="manageDishList"></div>
+            </div>
+            <div id="mPanelCategories" class="manage-panel">
+                <div class="panel-toolbar">
+                    <span class="panel-hint">💡 修改分类名或图标，所有该分类下的菜品自动更新</span>
+                    <button class="btn-primary btn-sm" onclick="openCategoryForm()">＋ 添加分类</button>
+                </div>
+                <div class="manage-cat-list" id="manageCatList"></div>
+            </div>
+            <div id="mPanelMembers" class="manage-panel">
+                <div class="panel-toolbar">
+                    <span class="panel-hint">💡 管理家庭成员，可上传头像</span>
+                    <button class="btn-primary btn-sm" onclick="openMemberForm()">＋ 添加家人</button>
+                </div>
+                <div class="manage-member-list" id="manageMemberList"></div>
+            </div>
+            <div id="mPanelData" class="manage-panel">
+                <div class="data-section">
+                    <h3>📤 导出菜单数据</h3>
+                    <p class="data-desc">导出菜品、分类和家人数据，通过微信发给家人导入</p>
+                    <button class="btn-primary" onclick="exportData()">📥 下载数据文件</button>
+                    <button class="btn-outline" style="margin-left:8px;" onclick="copyShareText()">📋 复制分享文本</button>
+                </div>
+                <div class="data-section">
+                    <h3>📥 导入菜单数据</h3>
+                    <p class="data-desc">从家人发来的 JSON 文件导入，会覆盖当前菜单</p>
+                    <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none;">
+                    <button class="btn-outline" onclick="document.getElementById('importFile').click()">📂 选择文件导入</button>
+                </div>
+                <div class="data-section">
+                    <h3>📊 存储统计</h3>
+                    <p class="data-desc" id="storageStats">计算中...</p>
+                </div>
+                <div class="data-section">
+                    <h3>🔄 恢复默认</h3>
+                    <p class="data-desc"><strong>会丢失所有自定义！</strong>恢复为 30 道默认菜品。</p>
+                    <button class="btn-danger" onclick="resetToDefault()">⚠️ 恢复默认设置</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 购物车侧边栏 -->
+    <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+    <aside class="cart-panel" id="cartPanel">
+        <div class="cart-header"><h2>🛒 点菜清单</h2><button class="btn-close" onclick="closeCart()">✕</button></div>
+        <div class="cart-list" id="cartList"></div>
+        <div class="cart-empty" id="cartEmpty"><p>🛒</p><p>购物车空空如也~</p><p>快去选菜吧！</p></div>
+        <div class="cart-footer" id="cartFooter">
+            <div class="cart-total">
+                <span>共 <strong id="cartCount">0</strong> 道菜</span>
+                <span>合计：<strong>¥<span id="cartTotal">0</span></strong></span>
+            </div>
+            <button class="btn-submit" onclick="submitOrder()">📝 提交订单</button>
+        </div>
+    </aside>
+
+    <!-- 确认订单弹窗 -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal modal-lg">
+            <div class="modal-header"><h3>📝 确认订单</h3></div>
+            <div class="modal-body">
+                <div id="confirmBody"></div>
+                <div class="form-group" style="margin-top:16px;">
+                    <label>📝 订单备注</label>
+                    <textarea id="confirmNote" placeholder="例：红烧排骨少放盐、多放一双筷子..." rows="2" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;resize:vertical;font-family:inherit;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal()">再改改</button>
+                <button class="btn-confirm" onclick="confirmOrder()">✅ 确认下单</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 菜品编辑弹窗 -->
+    <div class="modal-overlay" id="dishModal">
+        <div class="modal">
+            <div class="modal-header"><h3 id="dishModalTitle">🍽️ 添加菜品</h3></div>
+            <div class="modal-body">
+                <input type="hidden" id="dishFormId">
+                <div class="form-group">
+                    <label>菜品图片</label>
+                    <div class="image-upload-area">
+                        <div class="image-upload-preview" id="dishImagePreview"><span class="image-placeholder">🥘</span></div>
+                        <div class="image-upload-actions">
+                            <button type="button" class="btn-outline btn-sm" onclick="document.getElementById('dishImageInput').click()">📷 上传</button>
+                            <button type="button" class="btn-text btn-sm" id="dishImageClear" style="display:none" onclick="clearDishImage()">移除</button>
+                        </div>
+                        <input type="file" id="dishImageInput" accept="image/*" onchange="handleDishImage(event)" style="display:none">
+                    </div>
+                    <p class="form-hint">不传则用 Emoji</p>
+                </div>
+                <div class="form-group">
+                    <label>图标 Emoji <span class="form-hint-inline">（无图片时用）</span></label>
+                    <div class="emoji-picker-wrap">
+                        <input type="text" id="dishFormEmoji" placeholder="🍖" maxlength="4">
+                        <span class="emoji-preview-simple" id="emojiPreview">🍖</span>
+                    </div>
+                    <div class="emoji-suggestions" id="emojiSuggestions"></div>
+                </div>
+                <div class="form-group"><label>名称 <span class="required">*</span></label><input type="text" id="dishFormName" placeholder="例：红烧排骨"></div>
+                <div class="form-group"><label>分类 <span class="required">*</span></label><select id="dishFormCat"></select></div>
+                <div class="form-group"><label>价格（元）<span class="required">*</span></label><input type="number" id="dishFormPrice" placeholder="例：28" min="0" step="1"></div>
+                <div class="form-group"><label>描述</label><input type="text" id="dishFormDesc" placeholder="口味特点"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeDishModal()">取消</button>
+                <button class="btn-confirm" onclick="saveDish()">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分类编辑弹窗 -->
+    <div class="modal-overlay" id="catModal">
+        <div class="modal modal-sm">
+            <div class="modal-header"><h3 id="catModalTitle">📂 添加分类</h3></div>
+            <div class="modal-body">
+                <input type="hidden" id="catFormOldName">
+                <div class="form-group"><label>名称 <span class="required">*</span></label><input type="text" id="catFormName" placeholder="例：热菜"></div>
+                <div class="form-group"><label>图标 Emoji</label>
+                    <div class="emoji-picker-wrap"><input type="text" id="catFormEmoji" placeholder="🍳" maxlength="4"><span class="emoji-preview-simple" id="catEmojiPreview">🍳</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeCatModal()">取消</button>
+                <button class="btn-confirm" onclick="saveCategory()">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 家人编辑弹窗 -->
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal modal-sm">
+            <div class="modal-header"><h3 id="memberModalTitle">👤 添加家人</h3></div>
+            <div class="modal-body">
+                <input type="hidden" id="memberFormOldName">
+                <div class="form-group">
+                    <label>头像</label>
+                    <div class="avatar-upload-area">
+                        <div class="avatar-upload-preview" id="memberAvatarUploadPreview"><span class="avatar-placeholder">👤</span></div>
+                        <div class="avatar-upload-actions">
+                            <button type="button" class="btn-outline btn-sm" onclick="document.getElementById('memberAvatarInput').click()">📷 上传</button>
+                            <button type="button" class="btn-text btn-sm" id="memberAvatarClear" style="display:none" onclick="clearMemberAvatar()">移除</button>
+                        </div>
+                        <input type="file" id="memberAvatarInput" accept="image/*" onchange="handleMemberAvatar(event)" style="display:none">
+                    </div>
+                </div>
+                <div class="form-group"><label>称呼 <span class="required">*</span></label><input type="text" id="memberFormName" placeholder="例：爸爸"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeMemberModal()">取消</button>
+                <button class="btn-confirm" onclick="saveMember()">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
