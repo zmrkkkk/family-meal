@@ -116,7 +116,8 @@ function rstAll(){if(!confirm('⚠️ 清空所有数据？'))return;localStorag
 function bE(){document.getElementById('cn').addEventListener('click',e=>{const b=e.target.closest('.cat-btn');if(!b)return;document.querySelectorAll('#cn .cat-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');cur=b.dataset.cat;rMG();});document.getElementById('mn').addEventListener('click',e=>{const b=e.target.closest('.subnav-btn');if(!b)return;document.querySelectorAll('#mn .subnav-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');cm=b.dataset.m;document.querySelectorAll('.manage-panel').forEach(p=>p.classList.remove('active'));document.getElementById('mp'+cm.toUpperCase())?.classList.add('active');if(cm==='d')rMD();if(cm==='c')rMC();if(cm==='m')rMM();});document.getElementById('de')?.addEventListener('input',function(){document.getElementById('dep').textContent=this.value||'🥘';});document.getElementById('cem')?.addEventListener('input',function(){document.getElementById('cep').textContent=this.value||'📂';});document.getElementById('pin3')?.addEventListener('keydown',e=>{if(e.key==='Enter')hL();});}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  // 检查 URL hash 中的分享链接
+  try{
   const h=location.hash.slice(1);if(h&&!gCfg()){try{const c=JSON.parse(atob(h));if(c.u&&c.t){localStorage.setItem('fm_gh',JSON.stringify(c));location.hash='';}}}catch(e){}
   initCfg();ss('lockScreen');
+  }catch(e){document.body.innerHTML='<div style="padding:40px;text-align:center;"><h2>⚠️ 加载失败</h2><p>'+e.message+'</p><p><small>请刷新页面或清除缓存重试</small></p></div>';}
 });
