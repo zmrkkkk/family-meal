@@ -51,8 +51,7 @@ async function syncNow(){sS('⏳');await ld();toast('🔄 已刷新');}
 
 async function init(){
   if(!gT()){document.getElementById('tkModal').classList.add('open');return;}
-  await ld();
-  if(!M.length)setTimeout(()=>ld(),2000);
+  await syncNow();
 }
 function rA(){try{rMS()}catch(e){}try{rCN()}catch(e){}try{rMG()}catch(e){}try{rCB()}catch(e){}try{rCP()}catch(e){}try{rH()}catch(e){}try{rMD()}catch(e){}try{rMC()}catch(e){}try{rMM()}catch(e){}}
 
