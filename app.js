@@ -4,8 +4,13 @@ let T='',M=[],C=[],P=[],O=[],cart=[],cur='all',sr='',cm='d',nextId=1000,tDI='',t
 
 function gT(){T=localStorage.getItem('fm_tk')||'';return T;}
 function svTk(){const v=document.getElementById('tkInput').value.trim();if(!v){toast('请输入Token');return;}localStorage.setItem('fm_tk',v);T=v;document.getElementById('tkModal').classList.remove('open');ld();showShare();}
-function showShare(){const btn=document.getElementById('shareBtn');if(btn){btn.style.display='block';btn.onclick=shareLink;}}
-function shareLink(){const t=getToken();if(!t)return;const link=location.origin+location.pathname+'#'+btoa(t);navigator.clipboard?.writeText(link).then(()=>toast('📋 链接已复制！微信发给家人'));}
+function showShare(){const btn=document.getElementById('shareBtn');if(btn)btn.style.display='inline-block';}
+function shareLink(){
+  const t=getToken();if(!t){toast('未配置Token');return;}
+  const link=location.origin+location.pathname+'#'+btoa(t);
+  if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>toast('📋 链接已复制！'));}
+  else{const ta=document.createElement('textarea');ta.value=link;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('📋 链接已复制！');}
+}
 function checkHash(){const h=location.hash.slice(1);if(!h||getToken())return;try{const t=atob(h);if(t.startsWith('ghp_')||t.startsWith('github_pat_')){localStorage.setItem('fm_tk',t);location.hash='';T=t;}}catch(e){}}
 
 async function ld(){
