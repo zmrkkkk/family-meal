@@ -8,12 +8,13 @@ const DC=[{name:'凉菜',emoji:'🧊'},{name:'热菜',emoji:'🍳'},{name:'汤�
 const DM=[{name:'爸爸',a:''},{name:'妈妈',a:''},{name:'爷爷',a:''},{name:'奶奶',a:''},{name:'大宝',a:''},{name:'小宝',a:''}];
 const DD=[{n:'拍黄瓜',c:'凉菜',p:12,e:'🥒',img:'',d:'清爽脆嫩'},{n:'凉拌木耳',c:'凉菜',p:15,e:'🍄',img:'',d:'爽口开胃'},{n:'皮蛋豆腐',c:'凉菜',p:14,e:'🥚',img:'',d:'嫩滑豆腐'},{n:'口水鸡',c:'凉菜',p:28,e:'🍗',img:'',d:'麻辣鲜香'},{n:'酱牛肉',c:'凉菜',p:32,e:'🥩',img:'',d:'酱香浓郁'},{n:'糖拌西红柿',c:'凉菜',p:10,e:'🍅',img:'',d:'酸甜清爽'},{n:'红烧排骨',c:'热菜',p:38,e:'🦴',img:'',d:'软烂入味'},{n:'鱼香肉丝',c:'热菜',p:26,e:'🐟',img:'',d:'酸甜微辣'},{n:'宫保鸡丁',c:'热菜',p:28,e:'🐔',img:'',d:'花生脆香'},{n:'糖醋里脊',c:'热菜',p:30,e:'🍖',img:'',d:'外酥里嫩'},{n:'麻婆豆腐',c:'热菜',p:18,e:'🧈',img:'',d:'麻辣下饭'},{n:'清炒时蔬',c:'热菜',p:16,e:'🥬',img:'',d:'清淡健康'},{n:'回锅肉',c:'热菜',p:28,e:'🥓',img:'',d:'肥而不腻'},{n:'干煸四季豆',c:'热菜',p:18,e:'🫘',img:'',d:'干香微辣'},{n:'番茄炒蛋',c:'热菜',p:15,e:'🍳',img:'',d:'国民家常'},{n:'番茄蛋花汤',c:'汤类',p:12,e:'🥣',img:'',d:'清淡鲜美'},{n:'酸辣汤',c:'汤类',p:14,e:'🌶️',img:'',d:'酸辣开胃'},{n:'排骨玉米汤',c:'汤类',p:25,e:'🌽',img:'',d:'清甜滋补'},{n:'紫菜蛋花汤',c:'汤类',p:10,e:'🫧',img:'',d:'简单鲜美'},{n:'白米饭',c:'主食',p:3,e:'🍚',img:'',d:'香喷喷'},{n:'蛋炒饭',c:'主食',p:12,e:'🍛',img:'',d:'粒粒分明'},{n:'手工水饺',c:'主食',p:22,e:'🥟',img:'',d:'皮薄馅大'},{n:'番茄鸡蛋面',c:'主食',p:14,e:'🍜',img:'',d:'家常味'},{n:'馒头',c:'主食',p:2,e:'🥖',img:'',d:'松软'},{n:'可乐',c:'饮品',p:5,e:'🥤',img:'',d:'冰爽'},{n:'雪碧',c:'饮品',p:5,e:'🧊',img:'',d:'清爽'},{n:'橙汁',c:'饮品',p:8,e:'🍊',img:'',d:'鲜榨'},{n:'王老吉',c:'饮品',p:6,e:'🫖',img:'',d:'怕上火'},{n:'酸梅汤',c:'饮品',p:5,e:'🫗',img:'',d:'消暑'}];
 
-let app,db,auth,_,M=[],C=[],P=[],O=[],cart=[],cur='all',sr='',cm='d',fi=null,fd=null,isR=false,tDI='',tMA='',tDIF=null,tMAF=null;
+let cb,db,auth,_,M=[],C=[],P=[],O=[],cart=[],cur='all',sr='',cm='d',fi=null,fd=null,isR=false,tDI='',tMA='',tDIF=null,tMAF=null;
 
 // === CloudBase 配置 ===
 function gCfg(){try{return JSON.parse(localStorage.getItem('fm_tcb'));}catch(e){return null;}}
-function svCfg(){const e=document.getElementById('cfgEnv').value.trim();if(!e){toast('⚠️ 请输入环境ID');return;}localStorage.setItem('fm_tcb',JSON.stringify({env:e}));toast('✅ 已保存');setTimeout(()=>location.reload(),500);}
-function iTCB(){const c=gCfg();if(!c){ss('cfgScreen');return false;}try{app=tcb.init({env:c.env});db=app.database();auth=app.auth({persistence:'local'});_=db.command;return true;}catch(e){toast('⚠️ 初始化失败');return false;}}
+function svCfg(){const e=document.getElementById('cfgEnv').value.trim();if(!e){toast('⚠️ 请输入环境ID');return;}localStorage.setItem('fm_tcb',JSON.stringify({env:e}));document.getElementById('cfgScreen').innerHTML='<div class="loading-screen"><div class="spinner"></div><p>正在连接云端...</p></div>';setTimeout(()=>location.reload(),800);}
+function iTCB(){const c=gCfg();if(!c){ss('cfgScreen');return false;}try{if(typeof cloudbase==='undefined'){showCfgError('CloudBase SDK 加载失败，请检查网络');return false;}cb=cloudbase.init({env:c.env});db=cb.database();auth=cb.auth({persistence:'local'});_=db.command;return true;}catch(e){console.error('TCB init error:',e);showCfgError('初始化失败: '+e.message+'。请检查环境ID是否正确');return false;}}
+function showCfgError(msg){ss('cfgScreen');const el=document.getElementById('cfgScreen');if(el)el.querySelector('.auth-subtitle').innerHTML='<span style="color:#e74c3c;">⚠️ '+msg+'</span>';}
 
 // === 屏幕 ===
 function ss(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id)?.classList.add('active');}
@@ -37,7 +38,7 @@ async function siI(){for(const d of DD)await db.collection('dishes').add({...d,f
 // === 数据 ===
 async function rf(){sl('⏳ 同步中...');try{const[ds,cs,ms,os]=await Promise.all([db.collection('dishes').where({fid:fi}).limit(1000).get(),db.collection('categories').where({fid:fi}).limit(1000).get(),db.collection('members').where({fid:fi}).limit(1000).get(),db.collection('orders').where({fid:fi}).orderBy('createdAt','desc').limit(500).get()]);M=ds.data.map(r=>({id:r._id,...r}));C=cs.data.map(r=>({id:r._id,...r}));P=ms.data.map(r=>({id:r._id,...r}));O=os.data.map(r=>({id:r._id,...r}));sl('✅ 已同步');}catch(e){sl('⚠️ 同步失败');console.error(e);}rA();}
 function sl(m){const el=document.getElementById('ss');if(el)el.textContent=m;}
-async function si(){const u=auth.currentUser;document.getElementById('hNm').textContent=fd.name;document.getElementById('fNm').textContent=fd.name;document.getElementById('uNm').textContent=u?u.username:'';await rf();bE();lc();}
+async function si(){const u=auth.currentUser||await auth.getCurrentUser();document.getElementById('hNm').textContent=fd.name;document.getElementById('fNm').textContent=fd.name;document.getElementById('uNm').textContent=u&&u.username?u.username:'';await rf();bE();lc();}
 
 // === 渲染 ===
 function rA(){rMS();rCN();rMG();rCB();rCP();rH();rMD();rMC();rMM();}
@@ -83,7 +84,7 @@ function rMM(){const l=document.getElementById('mml');if(!P.length){l.innerHTML=
 
 // === 图片 ===
 function ci(f,mw,mh,q){return new Promise((r,j)=>{if(!f.type.startsWith('image/'))return j(new Error('非图片'));const fr=new FileReader();fr.onload=e=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;if(w>mw){h*=mw/w;w=mw;}if(h>mh){w*=mh/h;h=mh;}const c=document.createElement('canvas');c.width=Math.round(w);c.height=Math.round(h);c.getContext('2d').drawImage(img,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',q));};img.onerror=()=>j(new Error('失败'));img.src=e.target.result;};fr.onerror=()=>j(new Error('失败'));fr.readAsDataURL(f);});}
-async function upF(f,p){if(!f)return'';const r=await app.uploadFile({cloudPath:p+Date.now()+'_'+f.name,filePath:f});return r.fileID;}
+async function upF(f,p){if(!f)return'';const r=await cb.uploadFile({cloudPath:p+Date.now()+'_'+f.name,filePath:f});return r.fileID;}
 
 // === 菜品 CRUD ===
 function oD(id){tDI='';tDIF=null;document.getElementById('dcat').innerHTML=C.map(c=>`<option value="${esc(c.name)}">${c.emoji} ${esc(c.name)}</option>`).join('');if(id){const d=M.find(x=>x.id===id);if(!d)return;document.getElementById('dt').textContent='✏️ 编辑';document.getElementById('di').value=d.id;document.getElementById('dn').value=d.n;document.getElementById('dcat').value=d.c;document.getElementById('dpr').value=d.p;document.getElementById('de').value=d.e;document.getElementById('dde').value=d.d;document.getElementById('dep').textContent=d.e||'🥘';if(d.img){tDI=d.img;document.getElementById('dp').innerHTML=`<img src="${d.img}">`;document.getElementById('dp').classList.add('has-image');document.getElementById('dcb').style.display='inline-block';}else clD();}else{document.getElementById('dt').textContent='🍽️ 添加';document.getElementById('di').value='';['dn','de','dde'].forEach(x=>document.getElementById(x).value='');document.getElementById('dpr').value='';document.getElementById('dcat').value=C[0]?.name||'';document.getElementById('dep').textContent='🥘';clD();}document.getElementById('dm').classList.add('open');}
