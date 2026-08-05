@@ -1,7 +1,7 @@
 {
   "name": "家庭点菜",
   "short_name": "点菜",
-  "description": "家庭点菜系统 — 和家人一起点菜",
+  "description": "家人一起点菜",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -10,8 +10,8 @@
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏠</text></svg>",
-      "sizes": "any",
+      "src": "icon.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
