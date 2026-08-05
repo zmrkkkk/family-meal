@@ -49,8 +49,8 @@ function mark(){_dirty=true;saveCart();clearTimeout(mark._t);mark._t=setTimeout(
 function sS(m){const el=document.getElementById('ss');if(el)el.textContent=m;}
 async function syncNow(){sS('⏳');await ld();toast('🔄 已刷新');}
 
-async function init(){checkHash();if(!gT()){document.getElementById('tkModal').classList.add('open');return;}await ld();}
-function rA(){rMS();rCN();rMG();rCB();rCP();rH();rMD();rMC();rMM();}
+async function init(){checkHash();if(!gT()){document.getElementById('tkModal').classList.add('open');return;}try{await ld();}catch(e){console.error(e);setTimeout(ld,1000);}}
+function rA(){try{rMS()}catch(e){}try{rCN()}catch(e){}try{rMG()}catch(e){}try{rCB()}catch(e){}try{rCP()}catch(e){}try{rH()}catch(e){}try{rMD()}catch(e){}try{rMC()}catch(e){}try{rMM()}catch(e){}}
 
 function lc(){try{cart=JSON.parse(localStorage.getItem('fm_cart')||'[]');}catch(e){cart=[];}}
 function sc(){localStorage.setItem('fm_cart',JSON.stringify(cart));}

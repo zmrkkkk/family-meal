@@ -4,7 +4,7 @@
 <body>
 
 <div id="mainApp">
-<header class="header"><div class="header-inner"><h1 class="logo">🏠 家庭点菜</h1><div class="header-actions"><button class="btn-icon" id="btnM" onclick="sT('manage')">⚙️</button><button class="btn-icon" id="btnH" onclick="sT('history')">📋</button><button class="btn-icon cart-badge-wrapper" onclick="togC()">🛒<span class="cart-badge" id="cb">0</span></button></div></div></header>
+<header class="header"><div class="header-inner"><h1 class="logo" onclick="sT('menu')" style="cursor:pointer;">🏠 家庭点菜</h1><div class="header-actions"><button class="btn-icon" id="btnM" onclick="sT('manage')">⚙️</button><button class="btn-icon" id="btnH" onclick="sT('history')">📋</button><button class="btn-icon cart-badge-wrapper" onclick="togC()">🛒<span class="cart-badge" id="cb">0</span></button></div></div></header>
 <main class="main-content">
 <div class="user-bar"><span style="font-size:0.78rem;">🔄 <span id="ss">就绪</span></span><div><button class="btn-text" onclick="syncNow()">🔄 刷新</button><button class="btn-text" id="shareBtn" onclick="shareLink()">📋 分享</button></div></div>
 <div class="tab active" id="menuTab"><div class="member-bar"><label class="member-label">👤 点菜人：</label><div class="member-select-wrap"><select id="ms" class="member-select" onchange="oMC()"><option value="">-- 选择家人 --</option></select><div class="member-avatar-preview" id="ma">👤</div></div></div><nav class="category-nav" id="cn"></nav><div class="search-bar"><input type="text" id="si" placeholder="🔍 搜索..." oninput="fM()"></div><div class="menu-grid" id="mg"></div></div>
