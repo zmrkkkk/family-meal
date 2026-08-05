@@ -6,7 +6,7 @@
 <div id="mainApp">
 <header class="header"><div class="header-inner"><h1 class="logo">🏠 家庭点菜</h1><div class="header-actions"><button class="btn-icon" id="btnM" onclick="sT('manage')">⚙️</button><button class="btn-icon" id="btnH" onclick="sT('history')">📋</button><button class="btn-icon cart-badge-wrapper" onclick="togC()">🛒<span class="cart-badge" id="cb">0</span></button></div></div></header>
 <main class="main-content">
-<div class="user-bar"><span style="font-size:0.78rem;">🔄 <span id="ss">就绪</span></span><button class="btn-text" onclick="syncNow()">🔄 刷新</button></div>
+<div class="user-bar"><span style="font-size:0.78rem;">🔄 <span id="ss">就绪</span></span><div><button class="btn-text" onclick="syncNow()">🔄 刷新</button><button class="btn-text" id="shareBtn" style="display:none;" onclick="shareLink()">📋 分享</button></div></div>
 <div class="tab active" id="menuTab"><div class="member-bar"><label class="member-label">👤 点菜人：</label><div class="member-select-wrap"><select id="ms" class="member-select" onchange="oMC()"><option value="">-- 选择家人 --</option></select><div class="member-avatar-preview" id="ma">👤</div></div></div><nav class="category-nav" id="cn"></nav><div class="search-bar"><input type="text" id="si" placeholder="🔍 搜索..." oninput="fM()"></div><div class="menu-grid" id="mg"></div></div>
 <div class="tab" id="historyTab"><div class="page-header"><h2>📋 订单历史</h2><button class="btn-text" onclick="clH()">🗑️ 清空</button></div><div class="history-list" id="hl"></div></div>
 <div class="tab" id="manageTab"><div class="page-header"><h2>⚙️ 管理</h2></div><nav class="manage-subnav" id="mn"><button class="subnav-btn active" data-m="d">🍽️ 菜品</button><button class="subnav-btn" data-m="c">📂 分类</button><button class="subnav-btn" data-m="m">👤 家人</button></nav>
@@ -29,7 +29,10 @@
 <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:12px;">只需输入一次 GitHub Token，之后所有人直接打开就能用。</p>
 <p style="font-size:0.75rem;color:var(--text-lighter);margin-bottom:6px;"><a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a> → Classic Token → 勾选 repo → 复制</p>
 <div class="form-group"><label>GitHub Token</label><input type="password" id="tkInput" placeholder="ghp_..."></div>
-</div><div class="modal-footer"><button class="btn-confirm" onclick="svTk()">💾 保存</button></div></div></div>
+</div><div class="modal-footer"><button class="btn-confirm" onclick="svTk()">💾 保存</button></div>
+<p style="text-align:center;margin-top:12px;font-size:0.78rem;color:var(--text-lighter);">
+  保存后会出现「📋 复制分享链接」按钮<br>微信发给家人，点链接自动配置
+</p></div></div>
 
 <div class="toast" id="toast"></div>
 <script src="app.js?v=f1"></script>

@@ -3,7 +3,10 @@ const G='zmrkkkk',R='family-meal';
 let T='',M=[],C=[],P=[],O=[],cart=[],cur='all',sr='',cm='d',nextId=1000,tDI='',tMA='',_dirty=false,_saving=false;
 
 function gT(){T=localStorage.getItem('fm_tk')||'';return T;}
-function svTk(){const v=document.getElementById('tkInput').value.trim();if(!v){toast('请输入Token');return;}localStorage.setItem('fm_tk',v);T=v;document.getElementById('tkModal').classList.remove('open');ld();}
+function svTk(){const v=document.getElementById('tkInput').value.trim();if(!v){toast('请输入Token');return;}localStorage.setItem('fm_tk',v);T=v;document.getElementById('tkModal').classList.remove('open');ld();showShare();}
+function showShare(){const btn=document.getElementById('shareBtn');if(btn){btn.style.display='block';btn.onclick=shareLink;}}
+function shareLink(){const t=getToken();if(!t)return;const link=location.origin+location.pathname+'#'+btoa(t);navigator.clipboard?.writeText(link).then(()=>toast('📋 链接已复制！微信发给家人'));}
+function checkHash(){const h=location.hash.slice(1);if(!h||getToken())return;try{const t=atob(h);if(t.startsWith('ghp_')||t.startsWith('github_pat_')){localStorage.setItem('fm_tk',t);location.hash='';T=t;}}catch(e){}}
 
 async function ld(){
   sS('⏳');
@@ -30,7 +33,7 @@ function mark(){_dirty=true;saveCart();clearTimeout(mark._t);mark._t=setTimeout(
 function sS(m){const el=document.getElementById('ss');if(el)el.textContent=m;}
 async function syncNow(){sS('⏳');await ld();toast('🔄 已刷新');}
 
-async function init(){if(!gT()){document.getElementById('tkModal').classList.add('open');return;}await ld();}
+async function init(){checkHash();if(!gT()){document.getElementById('tkModal').classList.add('open');return;}showShare();await ld();}
 function rA(){rMS();rCN();rMG();rCB();rCP();rH();rMD();rMC();rMM();}
 
 function lc(){try{cart=JSON.parse(localStorage.getItem('fm_cart')||'[]');}catch(e){cart=[];}}
