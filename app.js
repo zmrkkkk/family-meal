@@ -22,7 +22,7 @@ function fallbackCopy(text){
   try{document.execCommand('copy');toast('📋 已复制！');}catch(e){toast('⚠️ 复制失败，请手动复制');}
   document.body.removeChild(ta);
 }
-function checkHash(){const h=location.hash.slice(1);if(!h||getToken())return;try{const t=atob(h);if(t.startsWith('ghp_')||t.startsWith('github_pat_')){localStorage.setItem('fm_tk',t);location.hash='';T=t;}}catch(e){}}
+function checkHash(){const h=location.hash.slice(1);if(!h||getToken())return;try{const t=atob(h);if(t.startsWith('ghp_')||t.startsWith('github_pat_')){localStorage.setItem('fm_tk',t);T=t;history.replaceState(null,'',location.pathname);}}catch(e){}}
 
 async function ld(){
   sS('⏳');
