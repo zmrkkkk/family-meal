@@ -10,28 +10,17 @@
 </head>
 <body>
 
-<!-- 配置 -->
-<div class="screen" id="cfgScreen">
-  <div class="auth-container"><div class="auth-card" style="text-align:center;">
-    <h2>⚙️ 腾讯云开发 配置</h2>
-    <p class="auth-subtitle">
-      去 <a href="https://console.cloud.tencent.com/tcb" target="_blank" style="color:var(--primary);">console.cloud.tencent.com/tcb</a><br>
-      开通云开发 → 创建环境 → 获取环境ID
-    </p>
-    <div class="form-group"><label>环境 ID</label><input type="text" id="cfgEnv" placeholder="env-xxxx"></div>
-    <button class="btn-auth" onclick="svCfg()">💾 保存</button>
-    <p class="auth-subtitle" style="margin-top:8px;font-size:0.75rem;">
-      免费额度：2GB数据库 + 5GB存储 + 5万次/天读取<br>家庭使用完全免费
-    </p>
-  </div></div>
-</div>
-
-<!-- 登录 -->
+<!-- 登录/配置 -->
 <div class="screen" id="authScreen">
   <div class="auth-container"><div class="auth-card" style="text-align:center;">
     <div class="auth-logo">🏠</div>
     <div class="auth-title" id="authTitle">登录</div>
     <div class="auth-error" id="authErr"></div>
+    <div id="cfgBox" style="display:none;margin-bottom:12px;padding:10px;background:#fef5e7;border-radius:8px;">
+      <p style="font-size:0.8rem;margin-bottom:6px;">⚙️ 首次使用，请输入 CloudBase 环境ID</p>
+      <p style="font-size:0.7rem;color:var(--text-light);margin-bottom:6px;">去 <a href="https://console.cloud.tencent.com/tcb" target="_blank" style="color:var(--primary);">cloud.tencent.com</a> 云开发控制台复制</p>
+      <input type="text" id="cfgEnv" placeholder="环境ID" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:6px;font-size:0.85rem;text-align:center;">
+    </div>
     <form onsubmit="hA(event)">
       <div class="form-group"><label>用户名</label><input type="text" id="au" required></div>
       <div class="form-group"><label>密码</label><input type="password" id="ap" required minlength="6"></div>

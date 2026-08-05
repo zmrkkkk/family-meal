@@ -12,9 +12,7 @@ let cb,db,auth,_,M=[],C=[],P=[],O=[],cart=[],cur='all',sr='',cm='d',fi=null,fd=n
 
 // === CloudBase 配置 ===
 function gCfg(){try{return JSON.parse(localStorage.getItem('fm_tcb'));}catch(e){return null;}}
-function svCfg(){const e=document.getElementById('cfgEnv').value.trim();if(!e){toast('⚠️ 请输入环境ID');return;}localStorage.setItem('fm_tcb',JSON.stringify({env:e}));document.getElementById('cfgScreen').innerHTML='<div class="loading-screen"><div class="spinner"></div><p>正在连接云端...</p></div>';setTimeout(()=>location.reload(),800);}
-function iTCB(){const c=gCfg();if(!c){ss('cfgScreen');return false;}try{if(typeof cloudbase==='undefined'){showCfgError('CloudBase SDK 加载失败，请检查网络');return false;}cb=cloudbase.init({env:c.env});db=cb.database();auth=cb.auth({persistence:'local'});_=db.command;return true;}catch(e){console.error('TCB init error:',e);showCfgError('初始化失败: '+e.message+'。请检查环境ID是否正确');return false;}}
-function showCfgError(msg){ss('cfgScreen');const el=document.getElementById('cfgScreen');if(el)el.querySelector('.auth-subtitle').innerHTML='<span style="color:#e74c3c;">⚠️ '+msg+'</span>';}
+function iTCB(){const c=gCfg();if(!c){document.getElementById('cfgBox').style.display='block';return false;}try{cb=cloudbase.init({env:c.env});db=cb.database();auth=cb.auth({persistence:'local'});_=db.command;return true;}catch(e){document.getElementById('authErr').textContent='环境ID错误: '+e.message;document.getElementById('authErr').classList.add('show');document.getElementById('cfgBox').style.display='block';return false;}}
 
 // === 屏幕 ===
 function ss(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id)?.classList.add('active');}
@@ -22,11 +20,11 @@ function fT(t){document.querySelectorAll('.family-tab').forEach(x=>x.classList.r
 
 // === Auth ===
 function tM(){isR=!isR;document.getElementById('authTitle').textContent=isR?'注册':'登录';document.getElementById('aBtn').textContent=isR?'注册':'登录';document.getElementById('aSwT').textContent=isR?'已有账号？':'还没账号？';document.getElementById('aSwL').textContent=isR?'去登录':'去注册';}
-async function hA(e){e.preventDefault();const u=document.getElementById('au').value.trim(),p=document.getElementById('ap').value,btn=document.getElementById('aBtn'),er=document.getElementById('authErr');er.classList.remove('show');btn.disabled=true;btn.textContent='请稍候...';try{if(isR){await auth.signUpWithUsernameAndPassword(u,p);await auth.signInWithUsernameAndPassword(u,p);}else{await auth.signInWithUsernameAndPassword(u,p);}}catch(ex){er.textContent=ex.message||'操作失败';er.classList.add('show');btn.disabled=false;btn.textContent=isR?'注册':'登录';}}
+async function hA(e){e.preventDefault();const u=document.getElementById('au').value.trim(),p=document.getElementById('ap').value,btn=document.getElementById('aBtn'),er=document.getElementById('authErr');er.classList.remove('show');const env=document.getElementById('cfgEnv').value.trim();if(env&&!gCfg()){localStorage.setItem('fm_tcb',JSON.stringify({env}));cb=cloudbase.init({env});db=cb.database();auth=cb.auth({persistence:'local'});_=db.command;document.getElementById('cfgBox').style.display='none';}btn.disabled=true;btn.textContent='请稍候...';try{if(isR){await auth.signUpWithUsernameAndPassword(u,p);}else{await auth.signInWithUsernameAndPassword(u,p);}}catch(ex){er.textContent=ex.message||'操作失败';er.classList.add('show');btn.disabled=false;btn.textContent=isR?'注册':'登录';}}
 async function lo(){await auth.signOut();localStorage.removeItem('fm_fid');fi=null;ss('authScreen');}
 
 // === 启动 ===
-document.addEventListener('DOMContentLoaded',async()=>{if(!iTCB())return;const ls=auth.hasLoginState();if(!ls){ss('authScreen');return;}fi=localStorage.getItem('fm_fid');if(!fi){ss('famScreen');return;}await lF();ss('mainScreen');si();});
+document.addEventListener('DOMContentLoaded',async()=>{if(!iTCB()){ss('authScreen');return;}const ls=auth.hasLoginState();if(!ls){ss('authScreen');return;}fi=localStorage.getItem('fm_fid');if(!fi){ss('famScreen');return;}await lF();ss('mainScreen');si();});
 
 // === 家庭 ===
 async function cF(){const n=document.getElementById('fn').value.trim();if(!n){toast('⚠️ 请输入名称');return;}const code=gC();try{const r=await db.collection('families').add({name:n,code,createdAt:new Date()});fi=r.id;localStorage.setItem('fm_fid',fi);fd={id:fi,name:n,code};document.getElementById('fcOk').style.display='block';document.getElementById('fcCode').textContent=code;toast('🎉 创建成功');setTimeout(async()=>{ss('mainScreen');await siI();si();},1500);}catch(e){toast('⚠️ '+e.message);}}
