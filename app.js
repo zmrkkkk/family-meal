@@ -139,35 +139,50 @@ async function startApp(){
   loadCart();
 }
 async function syncFromCloud(){
-  const cloud=await loadFromCloud();
-  if(cloud&&cloud.menu){
-    menuData=cloud.menu;categories=cloud.categories||[];members=cloud.members||[];orders=cloud.orders||[];
-    if(menuData.length){nextId=Math.max(...menuData.map(d=>d.id||0),999)+1;}
-    // 同时存本地缓存
-    try{localStorage.setItem('fm_local_cache',JSON.stringify({menu:menuData,categories,members,orders}));}catch(e){}
-    document.getElementById('syncStatus').textContent='✅ 已同步';
-  }else{
-    // 无云端数据，用默认或本地缓存
+  document.getElementById('syncStatus').textContent='⏳ 同步中...';
+  try{
+    const cloud=await loadFromCloud();
+    if(cloud&&cloud.menu&&cloud.menu.length){
+      menuData=cloud.menu;categories=cloud.categories||[];members=cloud.members||[];orders=cloud.orders||[];
+      if(menuData.length){nextId=Math.max(...menuData.map(d=>d.id||0),999)+1;}
+      try{localStorage.setItem('fm_local_cache',JSON.stringify({menu:menuData,categories,members,orders}));}catch(e){}
+      document.getElementById('syncStatus').textContent='✅ 已同步（'+menuData.length+'道菜）';
+      return true;
+    }else{
+      throw new Error('云端数据为空');
+    }
+  }catch(e){
+    console.log('云端读取失败，使用本地:',e.message);
     const cache=localStorage.getItem('fm_local_cache');
-    if(cache){try{const c=JSON.parse(cache);if(c.menu&&c.menu.length){menuData=c.menu;categories=c.categories;members=c.members;orders=c.orders||[];}else setDefaults();}catch(e){setDefaults();}}
+    if(cache){try{const c=JSON.parse(cache);if(c.menu&&c.menu.length){menuData=c.menu;categories=c.categories;members=c.members;orders=c.orders||[];}else setDefaults();}catch(e2){setDefaults();}}
     else setDefaults();
-    document.getElementById('syncStatus').textContent='📡 使用本地数据';
-    // 首次使用，推送到云端
-    const ok=await saveToCloud({menu:menuData,categories,members,orders});
-    if(ok)document.getElementById('syncStatus').textContent='✅ 已同步';
-    else document.getElementById('syncStatus').textContent='⚠️ 云端推送失败（数据已保存在本地）';
+    if(!menuData.length)setDefaults();
+    document.getElementById('syncStatus').textContent='📡 离线模式（'+menuData.length+'道菜）';
+    // 后台尝试推送
+    saveToCloud({menu:menuData,categories,members,orders}).then(ok=>{
+      if(ok)document.getElementById('syncStatus').textContent='✅ 已同步（'+menuData.length+'道菜）';
+    });
+    return false;
   }
-  // 确保至少显示默认数据
-  if(!menuData.length) setDefaults();
+}
+async function manualSync(){
+  const btn=document.querySelector('#syncStatus');
+  const orig='🔄 手动同步';
+  btn.textContent='⏳ 正在同步...';
+  btn.style.pointerEvents='none';
+  const ok=await syncFromCloud();
+  if(ok){renderAll();showToast('✅ 同步成功');}
+  else{renderAll();showToast('⚠️ 云端不可用，使用本地数据');}
+  btn.style.pointerEvents='auto';
 }
 function setDefaults(){menuData=dCopy(DEF_MENU);categories=dCopy(DEF_CATS);members=dCopy(DEF_MEMBERS);orders=[];nextId=1000;}
 async function manualSync(){document.getElementById('syncStatus').textContent='🔄 同步中...';await syncFromCloud();renderAll();document.getElementById('syncStatus').textContent='✅ 已同步';showToast('✅ 同步完成');}
 
 async function saveAllToCloud(){
+  document.getElementById('syncStatus').textContent='⏳ 保存中...';
   const ok=await saveToCloud({menu:menuData,categories,members,orders});
-  if(ok)document.getElementById('syncStatus').textContent='✅ 已同步';
-  else document.getElementById('syncStatus').textContent='⚠️ 同步失败';
-  // 同时存本地缓存
+  if(ok)document.getElementById('syncStatus').textContent='✅ 已同步（'+menuData.length+'道菜）';
+  else document.getElementById('syncStatus').textContent='⚠️ 保存失败，请重试';
   try{localStorage.setItem('fm_local_cache',JSON.stringify({menu:menuData,categories,members,orders}));}catch(e){}
 }
 
