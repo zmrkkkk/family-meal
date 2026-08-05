@@ -20,6 +20,7 @@ async function iCB(){
     const m=e.message||'';
     if(m.includes('permission')||m.includes('Permission'))document.getElementById('syncErr').innerHTML='⚠️ 数据库权限未设！<br><small>控制台→数据库→每个集合→权限→<b>所有用户可读写</b></small>';
     else if(m.includes('not found')||m.includes('not exist'))document.getElementById('syncErr').innerHTML='⚠️ 需创建5个集合！<br><small>控制台→数据库→新建: <b>families dishes categories members orders</b></small>';
+    else if(m.includes('domain')||m.includes('不在')||m.includes('not allowed'))document.getElementById('syncErr').innerHTML='⚠️ 需添加安全域名！<br><small>控制台→环境→安全配置→添加: <b>zmrkkkk.github.io</b></small>';
     else document.getElementById('syncErr').textContent='连接失败: '+m;
     document.getElementById('syncErr').style.display='block';return false;
   }
@@ -35,7 +36,7 @@ async function hL(){
   const pin=gPin();
   if(!pin){const p1=document.getElementById('pin1').value.trim(),p2=document.getElementById('pin2').value.trim();if(!p1)return;if(p1!==p2){document.getElementById('pinErr').textContent='两次不一致';document.getElementById('pinErr').classList.add('show');return;}localStorage.setItem('fm_pin',p1);fi=await eF();}
   else{const p3=document.getElementById('pin3').value.trim();if(p3!==pin){document.getElementById('pinErr').textContent='密码错误';document.getElementById('pinErr').classList.add('show');return;}}
-  if(!fi){fi=await eF();if(!fi)return;}
+  if(!fi){document.getElementById('syncErr').textContent='⏳ 正在初始化...';document.getElementById('syncErr').style.display='block';fi=await eF();if(!fi){document.getElementById('syncErr').textContent='初始化失败，请确认：\n1. CloudBase已开启匿名登录\n2. 安全域名已添加 github.io\n3. 5个集合权限均为所有用户可读写';document.getElementById('syncErr').style.display='block';return;}}
   await rf();ss('mainScreen');sl('✅ 已同步');rA();bE();lc();
 }
 async function eF(){
