@@ -22,7 +22,7 @@ function fallbackCopy(text){
   try{document.execCommand('copy');toast('📋 已复制！');}catch(e){toast('⚠️ 复制失败，请手动复制');}
   document.body.removeChild(ta);
 }
-function checkHash(){const h=location.hash.slice(1);if(!h||getToken())return;try{const t=atob(h);if(t.startsWith('ghp_')||t.startsWith('github_pat_')){localStorage.setItem('fm_tk',t);T=t;history.replaceState(null,'',location.pathname);}}catch(e){}}
+function checkHash(){const h=location.hash.slice(1);if(!h||getToken())return;try{const t=atob(h);if(t.startsWith('ghp_')||t.startsWith('github_pat_')){localStorage.setItem('fm_tk',t);}}catch(e){}}
 
 async function ld(){
   sS('⏳');
@@ -52,8 +52,7 @@ async function syncNow(){sS('⏳');await ld();toast('🔄 已刷新');}
 async function init(){
   if(!gT()){document.getElementById('tkModal').classList.add('open');return;}
   await ld();
-  // 保险：再等1秒自动刷新一次，确保数据一定出来
-  setTimeout(async()=>{await ld();},1500);
+  if(!M.length)setTimeout(()=>ld(),2000);
 }
 function rA(){try{rMS()}catch(e){}try{rCN()}catch(e){}try{rMG()}catch(e){}try{rCB()}catch(e){}try{rCP()}catch(e){}try{rH()}catch(e){}try{rMD()}catch(e){}try{rMC()}catch(e){}try{rMM()}catch(e){}}
 
