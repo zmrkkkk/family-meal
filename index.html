@@ -10,121 +10,67 @@
 </head>
 <body>
 
-<!-- 加载 -->
-<div id="loadingScreen" class="loading-screen"><div class="spinner"></div><p id="loadingMsg">加载中...</p></div>
-
-<!-- 配置 -->
-<div class="screen" id="configScreen">
-  <div class="auth-container"><div class="auth-card" style="text-align:center;">
-    <h2>⚙️ Bmob 配置</h2>
-    <p class="auth-subtitle">仅需配置一次，之后家人只需密码登录</p>
-    <p class="auth-subtitle" style="font-size:0.78rem;color:var(--text-lighter);">
-      去 <a href="https://bmob.cn" target="_blank" style="color:var(--primary);">bmob.cn</a> 注册→控制台→创建应用→设置→应用密钥
-    </p>
-    <div class="form-group"><label>Application ID</label><input type="text" id="cfgAppId" placeholder="粘贴 Application ID"></div>
-    <div class="form-group"><label>REST API Key</label><input type="text" id="cfgAppKey" placeholder="粘贴 REST API Key"></div>
-    <button class="btn-auth" onclick="saveCfg()">💾 保存配置</button>
-  </div></div>
-</div>
-
-<!-- 登录 -->
-<div class="screen" id="authScreen">
+<!-- 密码锁 -->
+<div class="screen" id="lockScreen">
   <div class="auth-container"><div class="auth-card" style="text-align:center;">
     <div class="auth-logo">🏠</div>
-    <div class="auth-title" id="authTitle">登录</div>
-    <div class="auth-error" id="authError"></div>
-    <form onsubmit="handleAuth(event)">
-      <div class="form-group"><label>用户名</label><input type="text" id="authUser" required></div>
-      <div class="form-group"><label>密码</label><input type="password" id="authPass" required minlength="6"></div>
-      <button type="submit" class="btn-auth" id="authBtn">登录</button>
-    </form>
-    <div class="auth-switch"><span id="authSwitchText">还没账号？</span> <a onclick="toggleMode()" id="authSwitch">去注册</a></div>
-  </div></div>
-</div>
-
-<!-- 家庭 -->
-<div class="screen" id="familyScreen">
-  <div class="family-container"><div class="family-card">
-    <div class="family-logo">👨‍👩‍👧‍👦</div>
-    <div class="family-title">家庭设置</div>
-    <div class="family-tabs">
-      <button class="family-tab active" onclick="ft('create')">🏡 创建</button>
-      <button class="family-tab" onclick="ft('join')">🔗 加入</button>
-    </div>
-    <div class="family-panel active" id="fpCreate">
-      <div class="form-group"><label>家庭名称</label><input type="text" id="famName" placeholder="例：张家厨房"></div>
-      <button class="btn-auth" onclick="createFam()">🏡 创建</button>
-      <div id="famCreated" style="display:none;margin-top:16px;text-align:center;padding:14px;background:#edf7f0;border-radius:8px;">
-        <p>✅ 创建成功！邀请码：</p><p class="family-code-display" id="famCodeDisp"></p>
-        <p style="font-size:0.8rem;color:var(--text-light);">把这个码发给家人</p>
-      </div>
-    </div>
-    <div class="family-panel" id="fpJoin">
-      <div class="form-group"><label>邀请码</label><input type="text" id="famCode" placeholder="6位码" maxlength="6" style="text-align:center;font-size:1.3rem;letter-spacing:6px;"></div>
-      <button class="btn-auth" onclick="joinFam()">🔗 加入</button>
-    </div>
-    <button class="btn-logout" onclick="logout()">退出</button>
+    <div class="auth-title">家庭点菜</div>
+    <div id="lockNew"><p style="margin:10px 0;color:var(--text-light);">首次使用，设置家庭密码</p><div class="form-group"><input type="password" id="pin1" placeholder="输入密码" maxlength="20" style="text-align:center;font-size:1.2rem;letter-spacing:4px;"></div><div class="form-group"><input type="password" id="pin2" placeholder="再次输入" maxlength="20" style="text-align:center;font-size:1.2rem;letter-spacing:4px;"></div><button class="btn-auth" onclick="setPin()">🔒 设置</button></div>
+    <div id="lockEnter" style="display:none;"><div class="auth-error" id="pinErr"></div><div class="form-group"><input type="password" id="pin3" placeholder="输入密码" maxlength="20" style="text-align:center;font-size:1.2rem;letter-spacing:4px;" autocomplete="off"></div><button class="btn-auth" onclick="enterPin()">🔓 解锁</button></div>
+    <p style="margin-top:16px;font-size:0.75rem;color:var(--text-lighter);"><a onclick="resetAll()" style="color:var(--text-lighter);cursor:pointer;">忘记密码？重置（会清空数据）</a></p>
   </div></div>
 </div>
 
 <!-- 主应用 -->
 <div class="screen" id="mainScreen">
-<header class="header"><div class="header-inner">
-  <h1 class="logo" onclick="switchTab('menu')">🏠 <span id="hdrFam"></span></h1>
-  <div class="header-actions">
-    <button class="btn-icon" id="btnManage" onclick="switchTab('manage')">⚙️</button>
-    <button class="btn-icon" id="btnHistory" onclick="switchTab('history')">📋</button>
-    <button class="btn-icon cart-badge-wrapper" onclick="toggleCart()">🛒<span class="cart-badge" id="cartBadge">0</span></button>
+<header class="header"><div class="header-inner"><h1 class="logo" onclick="sT('menu')">🏠 家庭点菜</h1><div class="header-actions"><button class="btn-icon" onclick="sT('manage')">⚙️</button><button class="btn-icon" onclick="sT('history')">📋</button><button class="btn-icon cart-badge-wrapper" onclick="tC()">🛒<span class="cart-badge" id="cb">0</span></button></div></div></header>
+<main class="main-content" id="mc">
+  <div class="tab active" id="menuTab">
+    <div class="member-bar"><label class="member-label">👤 点菜人：</label><div class="member-select-wrap"><select id="ms" class="member-select" onchange="onMC()"><option value="">-- 选择家人 --</option></select><div class="member-avatar-preview" id="ma">👤</div></div></div>
+    <nav class="category-nav" id="cn"></nav>
+    <div class="search-bar"><input type="text" id="si" placeholder="🔍 搜索..." oninput="fM()"></div>
+    <div class="menu-grid" id="mg"></div>
   </div>
-</div></header>
-<main class="main-content">
-  <div class="user-bar"><span>👋 <span id="userName"></span> · <span class="family-name" id="famNameDisp"></span></span><span id="syncStatus" style="font-size:0.78rem;color:var(--text-lighter);"></span></div>
-  <div id="menuTab" class="tab active">
-    <div class="member-bar"><label class="member-label">👤 点菜人：</label><div class="member-select-wrap"><select id="memberSelect" class="member-select" onchange="onMC()"><option value="">-- 选择家人 --</option></select><div class="member-avatar-preview" id="mAvatar">👤</div></div></div>
-    <nav class="category-nav" id="catNav"></nav>
-    <div class="search-bar"><input type="text" id="searchInput" placeholder="🔍 搜索..." oninput="filterMenu()"></div>
-    <div class="menu-grid" id="menuGrid"></div>
-  </div>
-  <div id="historyTab" class="tab"><div class="page-header"><h2>📋 订单</h2><button class="btn-text" onclick="clearHistory()">🗑️</button></div><div class="history-list" id="historyList"></div></div>
-  <div id="manageTab" class="tab"><div class="page-header"><h2>⚙️ 管理</h2></div>
-    <nav class="manage-subnav" id="mNav">
-      <button class="subnav-btn active" data-mtab="dishes">🍽️ 菜品</button>
-      <button class="subnav-btn" data-mtab="categories">📂 分类</button>
-      <button class="subnav-btn" data-mtab="members">👤 家人</button>
-    </nav>
-    <div id="mPanelDishes" class="manage-panel active"><div class="panel-toolbar"><span class="panel-count" id="dishCount"></span><button class="btn-primary btn-sm" onclick="openDishForm()">＋</button></div><div class="manage-dish-list" id="mDishList"></div></div>
-    <div id="mPanelCategories" class="manage-panel"><div class="panel-toolbar"><button class="btn-primary btn-sm" onclick="openCatForm()">＋</button></div><div class="manage-cat-list" id="mCatList"></div></div>
-    <div id="mPanelMembers" class="manage-panel"><div class="panel-toolbar"><button class="btn-primary btn-sm" onclick="openMemForm()">＋</button></div><div class="manage-member-list" id="mMemList"></div></div>
+  <div class="tab" id="historyTab"><div class="page-header"><h2>📋 订单历史</h2><button class="btn-text" onclick="clH()">🗑️ 清空</button></div><div class="history-list" id="hl"></div></div>
+  <div class="tab" id="manageTab"><div class="page-header"><h2>⚙️ 管理</h2></div>
+    <nav class="manage-subnav" id="mn"><button class="subnav-btn active" data-m="dishes">🍽️ 菜品</button><button class="subnav-btn" data-m="categories">📂 分类</button><button class="subnav-btn" data-m="members">👤 家人</button><button class="subnav-btn" data-m="data">💾 备份</button></nav>
+    <div class="manage-panel active" id="mpDishes"><div class="panel-toolbar"><span class="panel-count" id="dc"></span><button class="btn-primary btn-sm" onclick="oD()">＋ 添加</button></div><div class="manage-dish-list" id="mdl"></div></div>
+    <div class="manage-panel" id="mpCategories"><div class="panel-toolbar"><button class="btn-primary btn-sm" onclick="oC()">＋ 添加</button></div><div class="manage-cat-list" id="mcl"></div></div>
+    <div class="manage-panel" id="mpMembers"><div class="panel-toolbar"><button class="btn-primary btn-sm" onclick="oM()">＋ 添加</button></div><div class="manage-member-list" id="mml"></div></div>
+    <div class="manage-panel" id="mpData">
+      <div class="data-section"><h3>🔐 修改密码</h3><div style="display:flex;gap:8px;"><input type="password" id="np" placeholder="新密码" maxlength="20" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;"><button class="btn-primary btn-sm" onclick="chP()">修改</button></div></div>
+      <div class="data-section"><h3>📤 导出备份</h3><p class="data-desc">下载包含所有数据的备份文件，微信发给家人</p><button class="btn-primary" onclick="exp()">📥 下载备份文件</button><button class="btn-outline" style="margin-left:6px;" onclick="cpy()">📋 复制数据</button></div>
+      <div class="data-section"><h3>📥 导入备份</h3><p class="data-desc">从家人发来的备份文件恢复</p><input type="file" id="if" accept=".json" onchange="imp(event)" style="display:none"><button class="btn-outline" onclick="if.click()">📂 选择文件</button></div>
+      <div class="data-section"><h3>🔄 恢复默认</h3><p class="data-desc">恢复 29 道默认菜品<strong>，会清除已有数据！</strong></p><button class="btn-danger" onclick="rst()">⚠️ 恢复默认</button></div>
+    </div>
   </div>
 </main>
 </div>
 
 <!-- 购物车 -->
-<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
-<aside class="cart-panel" id="cartPanel"><div class="cart-header"><h2>🛒 点菜清单</h2><button class="btn-close" onclick="closeCart()">✕</button></div><div class="cart-list" id="cartList"></div><div class="cart-empty" id="cartEmpty"><p>🛒</p><p>空空如也~</p></div><div class="cart-footer" id="cartFooter"><div class="cart-total"><span>共<strong id="cartCount">0</strong>道</span><span>¥<span id="cartTotal">0</span></span></div><textarea id="cartNote" placeholder="📝 备注" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;margin-bottom:8px;resize:vertical;font-family:inherit;"></textarea><button class="btn-submit" onclick="submitOrder()">📝 提交</button></div></aside>
+<div class="cart-overlay" id="co" onclick="lC()"></div>
+<aside class="cart-panel" id="cp"><div class="cart-header"><h2>🛒 点菜清单</h2><button class="btn-close" onclick="lC()">✕</button></div><div class="cart-list" id="cl"></div><div class="cart-empty" id="ce"><p>🛒</p><p>空空如也~</p></div><div class="cart-footer" id="cf"><div class="cart-total"><span>共<strong id="cc">0</strong>道</span><span>¥<span id="ct">0</span></span></div><textarea id="cnote" placeholder="📝 备注（例：少放盐）" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;margin-bottom:8px;resize:vertical;font-family:inherit;"></textarea><button class="btn-submit" onclick="sO()">📝 提交订单</button></div></aside>
 
 <!-- 确认订单 -->
-<div class="modal-overlay" id="confirmModal"><div class="modal modal-lg"><div class="modal-header"><h3>📝 确认订单</h3></div><div class="modal-body"><div id="confirmBody"></div></div><div class="modal-footer"><button class="btn-cancel" onclick="closeModal()">再改改</button><button class="btn-confirm" onclick="confirmOrder()">✅ 下单</button></div></div></div>
+<div class="modal-overlay" id="com"><div class="modal modal-lg"><div class="modal-header"><h3>📝 确认订单</h3></div><div class="modal-body"><div id="cmb"></div></div><div class="modal-footer"><button class="btn-cancel" onclick="lM()">再改改</button><button class="btn-confirm" onclick="cO()">✅ 下单</button></div></div></div>
 
 <!-- 菜品弹窗 -->
-<div class="modal-overlay" id="dishModal"><div class="modal"><div class="modal-header"><h3 id="dishTitle">添加</h3></div><div class="modal-body"><input type="hidden" id="dfId">
-<div class="form-group"><label>图片</label><div class="image-upload-area"><div class="image-upload-preview" id="diPrev"><span class="image-placeholder">🥘</span></div><div class="image-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="dI.click()">📷</button><button type="button" class="btn-text btn-sm" id="diClr" style="display:none" onclick="clearDi()">移除</button></div><input type="file" id="dI" accept="image/*" onchange="hDi(event)" style="display:none"></div></div>
-<div class="form-group"><label>Emoji</label><div class="emoji-picker-wrap"><input type="text" id="dfEm" maxlength="4"><span class="emoji-preview-simple" id="emPrev">🍖</span></div></div>
-<div class="form-group"><label>名称<span class="required">*</span></label><input type="text" id="dfName"></div>
-<div class="form-group"><label>分类<span class="required">*</span></label><select id="dfCat"></select></div>
-<div class="form-group"><label>价格<span class="required">*</span></label><input type="number" id="dfPrice" min="0" step="1"></div>
-<div class="form-group"><label>描述</label><input type="text" id="dfDesc"></div>
-</div><div class="modal-footer"><button class="btn-cancel" onclick="closeDishModal()">取消</button><button class="btn-confirm" onclick="saveDish()">💾 保存</button></div></div></div>
+<div class="modal-overlay" id="dm"><div class="modal"><div class="modal-header"><h3 id="dt">添加</h3></div><div class="modal-body"><input type="hidden" id="di">
+<div class="form-group"><label>图片</label><div class="image-upload-area"><div class="image-upload-preview" id="dp"><span class="image-placeholder">🥘</span></div><div class="image-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="diF.click()">📷</button><button type="button" class="btn-text btn-sm" id="dcb" style="display:none" onclick="clD()">移除</button></div><input type="file" id="diF" accept="image/*" onchange="hD(event)" style="display:none"></div></div>
+<div class="form-group"><label>Emoji</label><div class="emoji-picker-wrap"><input type="text" id="de" maxlength="4"><span class="emoji-preview-simple" id="dep">🍖</span></div></div>
+<div class="form-group"><label>名称<span class="required">*</span></label><input type="text" id="dn"></div>
+<div class="form-group"><label>分类<span class="required">*</span></label><select id="dcat"></select></div>
+<div class="form-group"><label>价格<span class="required">*</span></label><input type="number" id="dpr" min="0" step="1"></div>
+<div class="form-group"><label>描述</label><input type="text" id="dde"></div>
+</div><div class="modal-footer"><button class="btn-cancel" onclick="clDM()">取消</button><button class="btn-confirm" onclick="sD()">💾 保存</button></div></div></div>
 
 <!-- 分类弹窗 -->
-<div class="modal-overlay" id="catModal"><div class="modal modal-sm"><div class="modal-header"><h3 id="catTitle">添加</h3></div><div class="modal-body"><input type="hidden" id="cfOld"><div class="form-group"><label>名称<span class="required">*</span></label><input type="text" id="cfName"></div><div class="form-group"><label>Emoji</label><div class="emoji-picker-wrap"><input type="text" id="cfEm" maxlength="4"><span class="emoji-preview-simple" id="cfEmPrev">📂</span></div></div></div><div class="modal-footer"><button class="btn-cancel" onclick="closeCatModal()">取消</button><button class="btn-confirm" onclick="saveCat()">💾 保存</button></div></div></div>
+<div class="modal-overlay" id="catm"><div class="modal modal-sm"><div class="modal-header"><h3 id="catt">添加</h3></div><div class="modal-body"><input type="hidden" id="coid"><div class="form-group"><label>名称<span class="required">*</span></label><input type="text" id="cnm"></div><div class="form-group"><label>Emoji</label><div class="emoji-picker-wrap"><input type="text" id="cem" maxlength="4"><span class="emoji-preview-simple" id="cep">📂</span></div></div></div><div class="modal-footer"><button class="btn-cancel" onclick="clCM()">取消</button><button class="btn-confirm" onclick="sC()">💾 保存</button></div></div></div>
 
 <!-- 家人弹窗 -->
-<div class="modal-overlay" id="memberModal"><div class="modal modal-sm"><div class="modal-header"><h3 id="memTitle">添加</h3></div><div class="modal-body"><input type="hidden" id="mfOld"><div class="form-group"><label>头像</label><div class="avatar-upload-area"><div class="avatar-upload-preview" id="maPrev"><span class="avatar-placeholder">👤</span></div><div class="avatar-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="mA.click()">📷</button><button type="button" class="btn-text btn-sm" id="maClr" style="display:none" onclick="clearMa()">移除</button></div><input type="file" id="mA" accept="image/*" onchange="hMa(event)" style="display:none"></div></div><div class="form-group"><label>称呼<span class="required">*</span></label><input type="text" id="mfName"></div></div><div class="modal-footer"><button class="btn-cancel" onclick="closeMemModal()">取消</button><button class="btn-confirm" onclick="saveMem()">💾 保存</button></div></div></div>
+<div class="modal-overlay" id="memm"><div class="modal modal-sm"><div class="modal-header"><h3 id="memt">添加</h3></div><div class="modal-body"><input type="hidden" id="moid"><div class="form-group"><label>头像</label><div class="avatar-upload-area"><div class="avatar-upload-preview" id="map"><span class="avatar-placeholder">👤</span></div><div class="avatar-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="maF.click()">📷</button><button type="button" class="btn-text btn-sm" id="mab" style="display:none" onclick="clM()">移除</button></div><input type="file" id="maF" accept="image/*" onchange="hM(event)" style="display:none"></div></div><div class="form-group"><label>称呼<span class="required">*</span></label><input type="text" id="mnm"></div></div><div class="modal-footer"><button class="btn-cancel" onclick="clMM()">取消</button><button class="btn-confirm" onclick="sM()">💾 保存</button></div></div></div>
 
 <div class="toast" id="toast"></div>
-<script src="https://cdn.bmob.cn/bmob-3.0.0.min.js"></script>
 <script src="app.js"></script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');</script>
 </body>
 </html>
