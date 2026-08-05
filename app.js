@@ -24,6 +24,26 @@ function saveConfigAndEnter(){
   localStorage.setItem('fm_gh_config',JSON.stringify({ghUser,ghRepo,ghToken,familyPassword}));
   startApp();
 }
+function shareConfigLink(){
+  const u=document.getElementById('ghUser').value.trim(),r=document.getElementById('ghRepo').value.trim(),t=document.getElementById('ghToken').value.trim(),p=document.getElementById('familyPassword').value.trim();
+  if(!u||!r||!t||!p){showToast('⚠️ 请先填写所有字段');return;}
+  const cfg=btoa(JSON.stringify({u,r,t,p}));
+  const link=`${location.origin}${location.pathname}#${cfg}`;
+  navigator.clipboard?.writeText(link).then(()=>showToast('📋 链接已复制！微信发给家人，点开自动配置'));
+}
+function loadConfigFromHash(){
+  const h=location.hash.slice(1);
+  if(!h)return false;
+  try{
+    const c=JSON.parse(atob(h));
+    if(c.u&&c.r&&c.t&&c.p){
+      localStorage.setItem('fm_gh_config',JSON.stringify({ghUser:c.u,ghRepo:c.r,ghToken:c.t,familyPassword:c.p}));
+      location.hash='';
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
 async function loginWithPassword(){
   const pw=document.getElementById('loginPassword').value.trim();
   const err=document.getElementById('authError');
@@ -47,10 +67,14 @@ async function loadFromCloud(){
   const cfg=getConfig();if(!cfg)return null;
   ghUser=cfg.ghUser;ghRepo=cfg.ghRepo;ghToken=cfg.ghToken;familyPassword=cfg.familyPassword;
   try{
-    // 用 raw URL 读取，加时间戳避免缓存
+    // 优先用 GitHub Pages URL（国内能访问），fallback 到 API
+    let r;
     const ts=Date.now();
-    const rawUrl=`https://raw.githubusercontent.com/${ghUser}/${ghRepo}/master/data.json?t=${ts}`;
-    const r=await fetch(rawUrl);
+    try{
+      r=await fetch(`https://${ghUser}.github.io/${ghRepo}/data.json?t=${ts}`);
+    }catch(e){
+      r=await fetch(`https://raw.githubusercontent.com/${ghUser}/${ghRepo}/master/data.json?t=${ts}`);
+    }
     if(!r.ok)throw new Error('文件不存在');
     return await r.json();
   }catch(e){
@@ -92,6 +116,9 @@ async function saveToCloud(data){
 
 // === 启动 ===
 async function init(){
+  // 优先检查 URL hash 中的分享配置
+  if(loadConfigFromHash()){location.reload();return;}
+
   const cfg=getConfig();
   if(!cfg){showScreen('authScreen');document.getElementById('setupMode').style.display='block';document.getElementById('loginMode').style.display='none';return;}
 
@@ -122,13 +149,16 @@ async function syncFromCloud(){
   }else{
     // 无云端数据，用默认或本地缓存
     const cache=localStorage.getItem('fm_local_cache');
-    if(cache){try{const c=JSON.parse(cache);menuData=c.menu;categories=c.categories;members=c.members;orders=c.orders||[];}catch(e){setDefaults();}}
+    if(cache){try{const c=JSON.parse(cache);if(c.menu&&c.menu.length){menuData=c.menu;categories=c.categories;members=c.members;orders=c.orders||[];}else setDefaults();}catch(e){setDefaults();}}
     else setDefaults();
     document.getElementById('syncStatus').textContent='📡 使用本地数据';
     // 首次使用，推送到云端
     const ok=await saveToCloud({menu:menuData,categories,members,orders});
     if(ok)document.getElementById('syncStatus').textContent='✅ 已同步';
+    else document.getElementById('syncStatus').textContent='⚠️ 云端推送失败（数据已保存在本地）';
   }
+  // 确保至少显示默认数据
+  if(!menuData.length) setDefaults();
 }
 function setDefaults(){menuData=dCopy(DEF_MENU);categories=dCopy(DEF_CATS);members=dCopy(DEF_MEMBERS);orders=[];nextId=1000;}
 async function manualSync(){document.getElementById('syncStatus').textContent='🔄 同步中...';await syncFromCloud();renderAll();document.getElementById('syncStatus').textContent='✅ 已同步';showToast('✅ 同步完成');}
