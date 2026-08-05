@@ -47,9 +47,10 @@ async function loadFromCloud(){
   const cfg=getConfig();if(!cfg)return null;
   ghUser=cfg.ghUser;ghRepo=cfg.ghRepo;ghToken=cfg.ghToken;familyPassword=cfg.familyPassword;
   try{
-    // 用 raw URL 读取（不需要 token，速度快）
-    const rawUrl=`https://raw.githubusercontent.com/${ghUser}/${ghRepo}/master/data.json`;
-    const r=await fetch(rawUrl,{cache:'no-cache'});
+    // 用 raw URL 读取，加时间戳避免缓存
+    const ts=Date.now();
+    const rawUrl=`https://raw.githubusercontent.com/${ghUser}/${ghRepo}/master/data.json?t=${ts}`;
+    const r=await fetch(rawUrl);
     if(!r.ok)throw new Error('文件不存在');
     return await r.json();
   }catch(e){
@@ -71,7 +72,10 @@ async function saveToCloud(data){
     }catch(e){/* 文件不存在 */}
 
     const json=JSON.stringify(data);
-    const content=btoa(unescape(encodeURIComponent(json)));
+    // UTF-8 安全的 base64 编码
+    const bytes=new TextEncoder().encode(json);
+    const binary=Array.from(bytes).map(b=>String.fromCharCode(b)).join('');
+    const content=btoa(binary);
 
     const body={message:'更新数据',content};
     if(sha)body.sha=sha;
