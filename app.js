@@ -51,9 +51,9 @@ async function syncNow(){sS('⏳');await ld();toast('🔄 已刷新');}
 
 async function init(){
   if(!gT()){document.getElementById('tkModal').classList.add('open');return;}
-  let ok=false;
-  for(let i=0;i<3;i++){try{await ld();ok=true;break;}catch(e){console.error('ld failed:',e);await new Promise(r=>setTimeout(r,1000));}}
-  if(!ok)document.getElementById('ss').textContent='⚠️ 加载失败，点刷新重试';
+  await ld();
+  // 保险：再等1秒自动刷新一次，确保数据一定出来
+  setTimeout(async()=>{await ld();},1500);
 }
 function rA(){try{rMS()}catch(e){}try{rCN()}catch(e){}try{rMG()}catch(e){}try{rCB()}catch(e){}try{rCP()}catch(e){}try{rH()}catch(e){}try{rMD()}catch(e){}try{rMC()}catch(e){}try{rMM()}catch(e){}}
 
