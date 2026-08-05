@@ -10,30 +10,34 @@
 </head>
 <body>
 
-<!-- ===== PIN 锁屏 ===== -->
-<div class="screen" id="lockScreen">
+<!-- ===== 配置/登录 ===== -->
+<div class="screen" id="authScreen">
   <div class="auth-container">
     <div class="auth-card" style="text-align:center;">
       <div class="auth-logo">🏠</div>
       <div class="auth-title">家庭点菜</div>
-      <div id="lockSetupMsg" style="display:none;">
-        <p style="margin:10px 0;color:var(--text-light);">首次使用，设置一个家庭密码</p>
-        <p style="font-size:0.8rem;color:var(--text-lighter);">家人用同一个密码进入</p>
+      <div class="auth-subtitle">配置 GitHub 同步</div>
+      <div id="setupMode">
+        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:16px;line-height:1.6;">
+          数据通过 GitHub 云端同步，所有设备共享。<br>
+          需要你的 GitHub Token 和仓库名。
+        </p>
+        <div class="form-group"><label>GitHub 用户名</label><input type="text" id="ghUser" placeholder="你的 GitHub 用户名"></div>
+        <div class="form-group"><label>仓库名</label><input type="text" id="ghRepo" placeholder="例：family-meal"></div>
+        <div class="form-group"><label>Personal Access Token</label><input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+          <p class="form-hint" style="margin-top:4px;">
+            获取方式：GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → 生成 → 勾选 Contents (Read and write) → 复制
+          </p>
+        </div>
+        <div class="form-group"><label>家庭密码</label><input type="password" id="familyPassword" placeholder="家人共享的密码"></div>
+        <button class="btn-auth" onclick="saveConfigAndEnter()">🚀 进入</button>
       </div>
-      <div id="lockEnterMsg">
-        <p style="margin:10px 0;color:var(--text-light);">请输入家庭密码</p>
+      <div id="loginMode" style="display:none;">
+        <div class="auth-error" id="authError"></div>
+        <div class="form-group"><label>家庭密码</label><input type="password" id="loginPassword" placeholder="输入家庭密码"></div>
+        <button class="btn-auth" onclick="loginWithPassword()">🔓 解锁</button>
+        <p style="margin-top:12px;"><a onclick="resetConfig()" style="color:var(--text-lighter);font-size:0.8rem;cursor:pointer;">重新配置</a></p>
       </div>
-      <div class="auth-error" id="lockError"></div>
-      <div class="form-group">
-        <input type="password" id="lockPin" placeholder="输入密码" maxlength="20" style="text-align:center;font-size:1.2rem;letter-spacing:4px;" autocomplete="off">
-      </div>
-      <div class="form-group" id="lockPin2Group" style="display:none;">
-        <input type="password" id="lockPin2" placeholder="再次输入密码" maxlength="20" style="text-align:center;font-size:1.2rem;letter-spacing:4px;" autocomplete="off">
-      </div>
-      <button class="btn-auth" onclick="handleLock()" id="lockBtn">进入</button>
-      <p style="margin-top:12px;font-size:0.78rem;color:var(--text-lighter);">
-        <a onclick="resetLock()" style="color:var(--text-lighter);cursor:pointer;">重置密码（会清空数据）</a>
-      </p>
     </div>
   </div>
 </div>
@@ -52,7 +56,7 @@
 </header>
 
 <main class="main-content">
-  <!-- 菜单 -->
+  <div class="user-bar"><span id="syncStatus">🔄 同步中...</span><button class="btn-text" onclick="manualSync()">🔄 手动同步</button></div>
   <div id="menuTab" class="tab active">
     <div class="member-bar">
       <label class="member-label">👤 点菜人：</label>
@@ -65,12 +69,10 @@
     <div class="search-bar"><input type="text" id="searchInput" placeholder="🔍 搜索..." oninput="filterMenu()"></div>
     <div class="menu-grid" id="menuGrid"></div>
   </div>
-  <!-- 历史 -->
   <div id="historyTab" class="tab">
     <div class="page-header"><h2>📋 订单历史</h2><button class="btn-text" onclick="clearHistory()">🗑️ 清空</button></div>
     <div class="history-list" id="historyList"></div>
   </div>
-  <!-- 管理 -->
   <div id="manageTab" class="tab">
     <div class="page-header"><h2>⚙️ 管理</h2></div>
     <nav class="manage-subnav" id="manageSubnav">
@@ -84,7 +86,7 @@
       <div class="manage-dish-list" id="manageDishList"></div>
     </div>
     <div id="mPanelCategories" class="manage-panel">
-      <div class="panel-toolbar"><span class="panel-hint">💡 改名会自动更新所有菜品</span><button class="btn-primary btn-sm" onclick="openCategoryForm()">＋ 添加</button></div>
+      <div class="panel-toolbar"><span class="panel-hint">💡 改名自动更新所有菜品</span><button class="btn-primary btn-sm" onclick="openCategoryForm()">＋ 添加</button></div>
       <div class="manage-cat-list" id="manageCatList"></div>
     </div>
     <div id="mPanelMembers" class="manage-panel">
@@ -92,12 +94,9 @@
       <div class="manage-member-list" id="manageMemberList"></div>
     </div>
     <div id="mPanelData" class="manage-panel">
-      <div class="data-section"><h3>🔐 修改家庭密码</h3><p class="data-desc">修改后家人需要新密码才能进入</p>
-        <div style="display:flex;gap:8px;"><input type="password" id="newPin" placeholder="新密码" maxlength="20" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;"><button class="btn-primary btn-sm" onclick="changePin()">修改</button></div>
-      </div>
-      <div class="data-section"><h3>📤 导出备份</h3><p class="data-desc">下载包含所有数据（含图片）的备份文件</p><button class="btn-primary" onclick="exportData()">📥 下载备份文件</button></div>
-      <div class="data-section"><h3>📥 导入备份</h3><p class="data-desc">从备份文件恢复所有数据</p><input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none"><button class="btn-outline" onclick="document.getElementById('importFile').click()">📂 选择文件</button></div>
-      <div class="data-section"><h3>🔄 恢复默认</h3><p class="data-desc">恢复到 29 道默认菜品<strong>，会清除已有数据！</strong></p><button class="btn-danger" onclick="resetToDefault()">⚠️ 恢复默认</button></div>
+      <div class="data-section"><h3>📤 导出备份</h3><p class="data-desc">下载 JSON 备份到本地</p><button class="btn-primary" onclick="exportData()">📥 下载备份</button></div>
+      <div class="data-section"><h3>📥 导入备份</h3><p class="data-desc">从备份文件恢复（会同步到云端）</p><input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none"><button class="btn-outline" onclick="document.getElementById('importFile').click()">📂 选择文件</button></div>
+      <div class="data-section"><h3>🔄 恢复默认</h3><p class="data-desc">恢复到默认菜品<strong>，会清除已有数据！</strong></p><button class="btn-danger" onclick="resetToDefault()">⚠️ 恢复默认</button></div>
     </div>
   </div>
 </main>
@@ -117,54 +116,25 @@
 </aside>
 
 <!-- 确认订单 -->
-<div class="modal-overlay" id="confirmModal">
-  <div class="modal modal-lg"><div class="modal-header"><h3>📝 确认订单</h3></div>
-    <div class="modal-body"><div id="confirmBody"></div><div id="confirmNoteDisplay" style="margin-top:12px;"></div></div>
-    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal()">再改改</button><button class="btn-confirm" onclick="confirmOrder()">✅ 下单</button></div>
-  </div>
-</div>
+<div class="modal-overlay" id="confirmModal"><div class="modal modal-lg"><div class="modal-header"><h3>📝 确认订单</h3></div><div class="modal-body"><div id="confirmBody"></div><div id="confirmNoteDisplay" style="margin-top:12px;"></div></div><div class="modal-footer"><button class="btn-cancel" onclick="closeModal()">再改改</button><button class="btn-confirm" onclick="confirmOrder()">✅ 下单</button></div></div></div>
 
 <!-- 菜品弹窗 -->
-<div class="modal-overlay" id="dishModal"><div class="modal"><div class="modal-header"><h3 id="dishModalTitle">添加</h3></div>
-  <div class="modal-body"><input type="hidden" id="dishFormId">
-    <div class="form-group"><label>图片</label>
-      <div class="image-upload-area"><div class="image-upload-preview" id="dishImagePreview"><span class="image-placeholder">🥘</span></div>
-        <div class="image-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="document.getElementById('dishImageInput').click()">📷 上传</button><button type="button" class="btn-text btn-sm" id="dishImageClear" style="display:none" onclick="clearDishImage()">移除</button></div>
-        <input type="file" id="dishImageInput" accept="image/*" onchange="handleDishImage(event)" style="display:none"></div>
-    </div>
-    <div class="form-group"><label>Emoji</label><div class="emoji-picker-wrap"><input type="text" id="dishFormEmoji" maxlength="4"><span class="emoji-preview-simple" id="emojiPreview">🍖</span></div><div class="emoji-suggestions" id="emojiSuggestions"></div></div>
-    <div class="form-group"><label>名称<span class="required">*</span></label><input type="text" id="dishFormName"></div>
-    <div class="form-group"><label>分类<span class="required">*</span></label><select id="dishFormCat"></select></div>
-    <div class="form-group"><label>价格<span class="required">*</span></label><input type="number" id="dishFormPrice" min="0" step="1"></div>
-    <div class="form-group"><label>描述</label><input type="text" id="dishFormDesc"></div>
-  </div>
-  <div class="modal-footer"><button class="btn-cancel" onclick="closeDishModal()">取消</button><button class="btn-confirm" onclick="saveDish()">💾 保存</button></div>
-</div></div>
+<div class="modal-overlay" id="dishModal"><div class="modal"><div class="modal-header"><h3 id="dishModalTitle">添加</h3></div><div class="modal-body"><input type="hidden" id="dishFormId">
+<div class="form-group"><label>图片</label><div class="image-upload-area"><div class="image-upload-preview" id="dishImagePreview"><span class="image-placeholder">🥘</span></div><div class="image-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="document.getElementById('dishImageInput').click()">📷 上传</button><button type="button" class="btn-text btn-sm" id="dishImageClear" style="display:none" onclick="clearDishImage()">移除</button></div><input type="file" id="dishImageInput" accept="image/*" onchange="handleDishImage(event)" style="display:none"></div></div>
+<div class="form-group"><label>Emoji</label><div class="emoji-picker-wrap"><input type="text" id="dishFormEmoji" maxlength="4"><span class="emoji-preview-simple" id="emojiPreview">🍖</span></div><div class="emoji-suggestions" id="emojiSuggestions"></div></div>
+<div class="form-group"><label>名称<span class="required">*</span></label><input type="text" id="dishFormName"></div>
+<div class="form-group"><label>分类<span class="required">*</span></label><select id="dishFormCat"></select></div>
+<div class="form-group"><label>价格<span class="required">*</span></label><input type="number" id="dishFormPrice" min="0" step="1"></div>
+<div class="form-group"><label>描述</label><input type="text" id="dishFormDesc"></div>
+</div><div class="modal-footer"><button class="btn-cancel" onclick="closeDishModal()">取消</button><button class="btn-confirm" onclick="saveDish()">💾 保存</button></div></div></div>
 
 <!-- 分类弹窗 -->
-<div class="modal-overlay" id="catModal"><div class="modal modal-sm"><div class="modal-header"><h3 id="catModalTitle">添加</h3></div>
-  <div class="modal-body"><input type="hidden" id="catFormOldName">
-    <div class="form-group"><label>名称<span class="required">*</span></label><input type="text" id="catFormName"></div>
-    <div class="form-group"><label>Emoji</label><div class="emoji-picker-wrap"><input type="text" id="catFormEmoji" maxlength="4"><span class="emoji-preview-simple" id="catEmojiPreview">📂</span></div></div>
-  </div>
-  <div class="modal-footer"><button class="btn-cancel" onclick="closeCatModal()">取消</button><button class="btn-confirm" onclick="saveCategory()">💾 保存</button></div>
-</div></div>
+<div class="modal-overlay" id="catModal"><div class="modal modal-sm"><div class="modal-header"><h3 id="catModalTitle">添加</h3></div><div class="modal-body"><input type="hidden" id="catFormOldName"><div class="form-group"><label>名称<span class="required">*</span></label><input type="text" id="catFormName"></div><div class="form-group"><label>Emoji</label><div class="emoji-picker-wrap"><input type="text" id="catFormEmoji" maxlength="4"><span class="emoji-preview-simple" id="catEmojiPreview">📂</span></div></div></div><div class="modal-footer"><button class="btn-cancel" onclick="closeCatModal()">取消</button><button class="btn-confirm" onclick="saveCategory()">💾 保存</button></div></div></div>
 
 <!-- 家人弹窗 -->
-<div class="modal-overlay" id="memberModal"><div class="modal modal-sm"><div class="modal-header"><h3 id="memberModalTitle">添加</h3></div>
-  <div class="modal-body"><input type="hidden" id="memberFormOldName">
-    <div class="form-group"><label>头像</label>
-      <div class="avatar-upload-area"><div class="avatar-upload-preview" id="memberAvatarUploadPreview"><span class="avatar-placeholder">👤</span></div>
-        <div class="avatar-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="document.getElementById('memberAvatarInput').click()">📷 上传</button><button type="button" class="btn-text btn-sm" id="memberAvatarClear" style="display:none" onclick="clearMemberAvatar()">移除</button></div>
-        <input type="file" id="memberAvatarInput" accept="image/*" onchange="handleMemberAvatar(event)" style="display:none"></div>
-    </div>
-    <div class="form-group"><label>称呼<span class="required">*</span></label><input type="text" id="memberFormName"></div>
-  </div>
-  <div class="modal-footer"><button class="btn-cancel" onclick="closeMemberModal()">取消</button><button class="btn-confirm" onclick="saveMember()">💾 保存</button></div>
-</div></div>
+<div class="modal-overlay" id="memberModal"><div class="modal modal-sm"><div class="modal-header"><h3 id="memberModalTitle">添加</h3></div><div class="modal-body"><input type="hidden" id="memberFormOldName"><div class="form-group"><label>头像</label><div class="avatar-upload-area"><div class="avatar-upload-preview" id="memberAvatarUploadPreview"><span class="avatar-placeholder">👤</span></div><div class="avatar-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="document.getElementById('memberAvatarInput').click()">📷 上传</button><button type="button" class="btn-text btn-sm" id="memberAvatarClear" style="display:none" onclick="clearMemberAvatar()">移除</button></div><input type="file" id="memberAvatarInput" accept="image/*" onchange="handleMemberAvatar(event)" style="display:none"></div></div><div class="form-group"><label>称呼<span class="required">*</span></label><input type="text" id="memberFormName"></div></div><div class="modal-footer"><button class="btn-cancel" onclick="closeMemberModal()">取消</button><button class="btn-confirm" onclick="saveMember()">💾 保存</button></div></div></div>
 
 <div class="toast" id="toast"></div>
-
 <script src="app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');</script>
 </body>
