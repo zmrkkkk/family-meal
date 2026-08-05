@@ -16,15 +16,13 @@
 <!-- 配置 -->
 <div class="screen" id="configScreen">
   <div class="auth-container"><div class="auth-card" style="text-align:center;">
-    <h2>⚙️ LeanCloud 配置</h2>
+    <h2>⚙️ Bmob 配置</h2>
     <p class="auth-subtitle">仅需配置一次，之后家人只需密码登录</p>
     <p class="auth-subtitle" style="font-size:0.78rem;color:var(--text-lighter);">
-      去 <a href="https://leancloud.cn" target="_blank" style="color:var(--primary);">leancloud.cn</a> 注册→创建应用→设置→应用凭证
+      去 <a href="https://bmob.cn" target="_blank" style="color:var(--primary);">bmob.cn</a> 注册→控制台→创建应用→设置→应用密钥
     </p>
-    <div class="form-group"><label>AppId</label><input type="text" id="cfgAppId" placeholder="粘贴 AppId"></div>
-    <div class="form-group"><label>AppKey</label><input type="text" id="cfgAppKey" placeholder="粘贴 AppKey"></div>
-    <div class="form-group"><label>API 域名</label><input type="text" id="cfgServer" placeholder="https://xxx.lc-cn-n1-shared.com"></div>
-    <div class="form-group"><label>管理员密码</label><input type="password" id="cfgAdminPw" placeholder="设置管理员密码"></div>
+    <div class="form-group"><label>Application ID</label><input type="text" id="cfgAppId" placeholder="粘贴 Application ID"></div>
+    <div class="form-group"><label>REST API Key</label><input type="text" id="cfgAppKey" placeholder="粘贴 REST API Key"></div>
     <button class="btn-auth" onclick="saveCfg()">💾 保存配置</button>
   </div></div>
 </div>
@@ -125,7 +123,7 @@
 <div class="modal-overlay" id="memberModal"><div class="modal modal-sm"><div class="modal-header"><h3 id="memTitle">添加</h3></div><div class="modal-body"><input type="hidden" id="mfOld"><div class="form-group"><label>头像</label><div class="avatar-upload-area"><div class="avatar-upload-preview" id="maPrev"><span class="avatar-placeholder">👤</span></div><div class="avatar-upload-actions"><button type="button" class="btn-outline btn-sm" onclick="mA.click()">📷</button><button type="button" class="btn-text btn-sm" id="maClr" style="display:none" onclick="clearMa()">移除</button></div><input type="file" id="mA" accept="image/*" onchange="hMa(event)" style="display:none"></div></div><div class="form-group"><label>称呼<span class="required">*</span></label><input type="text" id="mfName"></div></div><div class="modal-footer"><button class="btn-cancel" onclick="closeMemModal()">取消</button><button class="btn-confirm" onclick="saveMem()">💾 保存</button></div></div></div>
 
 <div class="toast" id="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.2/dist/av-min.js"></script>
+<script src="https://cdn.bmob.cn/bmob-3.0.0.min.js"></script>
 <script src="app.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');</script>
 </body>
