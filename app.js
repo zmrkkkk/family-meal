@@ -6,7 +6,7 @@ function gT(){T=localStorage.getItem('fm_tk')||'';return T;}
 function svTk(){const v=document.getElementById('tkInput').value.trim();if(!v){toast('请输入Token');return;}localStorage.setItem('fm_tk',v);T=v;document.getElementById('tkModal').classList.remove('open');ld();}
 function shareLink(){
   const t=getToken();if(!t){toast('未配置Token');return;}
-  const link=location.origin+location.pathname+'#'+btoa(t);
+  const link=location.origin+location.pathname+'?t='+t;
   // 方法1: clipboard API
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(link).then(()=>toast('📋 已复制！')).catch(()=>fallbackCopy(link));
@@ -22,7 +22,14 @@ function fallbackCopy(text){
   try{document.execCommand('copy');toast('📋 已复制！');}catch(e){toast('⚠️ 复制失败，请手动复制');}
   document.body.removeChild(ta);
 }
-function checkHash(){const h=location.hash.slice(1);if(!h||getToken())return;try{const t=atob(h);if(t.startsWith('ghp_')||t.startsWith('github_pat_')){localStorage.setItem('fm_tk',t);}}catch(e){}}
+function checkHash(){
+  // 优先检查 ?t= 参数
+  const p=new URLSearchParams(location.search);const qt=p.get('t');
+  if(qt&&(qt.startsWith('ghp_')||qt.startsWith('github_pat_'))){localStorage.setItem('fm_tk',qt);history.replaceState(null,'',location.pathname);return;}
+  // 兼容旧的 #hash 方式
+  const h=location.hash.slice(1);if(!h||getToken())return;
+  try{const t=atob(h);if(t.startsWith('ghp_')||t.startsWith('github_pat_')){localStorage.setItem('fm_tk',t);history.replaceState(null,'',location.pathname);}}catch(e){}
+}
 
 async function ld(){
   sS('⏳');
@@ -51,7 +58,7 @@ async function syncNow(){sS('⏳');await ld();toast('🔄 已刷新');}
 
 async function init(){
   if(!gT()){document.getElementById('tkModal').classList.add('open');return;}
-  await syncNow();
+  await ld();
 }
 function rA(){try{rMS()}catch(e){}try{rCN()}catch(e){}try{rMG()}catch(e){}try{rCB()}catch(e){}try{rCP()}catch(e){}try{rH()}catch(e){}try{rMD()}catch(e){}try{rMC()}catch(e){}try{rMM()}catch(e){}}
 
